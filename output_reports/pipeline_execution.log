@@ -1,0 +1,6 @@
+2026-11-07 18:48:55.993 INFO  [JobScheduler] Starting job: Storage_To_Processing_Medallion (input=transactions_raw.csv)
+2026-11-07 18:48:55.994 INFO  [BronzeReader] Scanning input file C:\Users\vuvie\Documents\Big data\DoAn\data\bronze_raw\transactions_raw.csv (size=4.69 MB / 4799.51 KB)
+2026-11-07 18:48:56.574 INFO  [FilterStage] Completed cleaning 50,000 rows in 0.575s -> Valid=43,922, Dropped=6,078 (Dup=2,023, Null=2,040, Outlier=1,262, BadDate=753)
+2026-11-07 18:48:56.942 INFO  [ParquetWriter] Committed 12 partitions to silver_cleaned in 0.363s (Compressed size=1.46 MB / 1491.37 KB)
+2026-11-07 18:48:56.943 INFO  [SparkSQLAggregator] Executed 3 analytical queries on Silver dataset in 0.51 ms
+2026-11-07 18:48:56.943 INFO  [JobScheduler] Job finished successfully: TotalTime=0.95s | Throughput=52,654 rows/s | AvgRowLatency=18.99 us/row | StorageReduction=68.93%

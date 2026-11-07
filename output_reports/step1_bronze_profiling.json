@@ -1,0 +1,14 @@
+{
+    "total_generated": 50000,
+    "clean_rows_injected": 43922,
+    "null_injected": 2040,
+    "negative_or_zero_injected": 1262,
+    "invalid_date_injected": 753,
+    "duplicate_injected": 2023,
+    "file_path": "C:\\Users\\vuvie\\Documents\\Big data\\DoAn\\data\\bronze_raw\\transactions_raw.csv",
+    "file_size_bytes": 4914701,
+    "file_size_kb": 4799.51,
+    "file_size_mb": 4.69,
+    "generation_time_sec": 0.3749,
+    "throughput_rows_per_sec": 133362
+}

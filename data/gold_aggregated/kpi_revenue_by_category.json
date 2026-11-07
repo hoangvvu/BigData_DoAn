@@ -1,0 +1,44 @@
+[
+    {
+        "category": "Sports",
+        "total_orders": 3682,
+        "total_items_sold": 20345,
+        "total_revenue": 15516005.42,
+        "avg_order_value": 4214.02
+    },
+    {
+        "category": "Home & Living",
+        "total_orders": 3696,
+        "total_items_sold": 20246,
+        "total_revenue": 15257233.15,
+        "avg_order_value": 4128.04
+    },
+    {
+        "category": "Beauty",
+        "total_orders": 3709,
+        "total_items_sold": 20216,
+        "total_revenue": 15218810.9,
+        "avg_order_value": 4103.21
+    },
+    {
+        "category": "Electronics",
+        "total_orders": 3672,
+        "total_items_sold": 20202,
+        "total_revenue": 15182118.19,
+        "avg_order_value": 4134.56
+    },
+    {
+        "category": "Fashion",
+        "total_orders": 3686,
+        "total_items_sold": 20256,
+        "total_revenue": 15049135.25,
+        "avg_order_value": 4082.78
+    },
+    {
+        "category": "Books",
+        "total_orders": 3561,
+        "total_items_sold": 19678,
+        "total_revenue": 14831636.74,
+        "avg_order_value": 4165.02
+    }
+]

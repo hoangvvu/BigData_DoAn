@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đồ án Big Data – Storage → Processing</title>
+<style>
+  :root { --navy:#1b2d3b; --navy-light:#2a4356; --bg:#eef2f3; --text:#1f2d3a; --muted:#8493a0; --line:#e6ebee;
+          --green:#338a0f; --yellow:#f0c91f; --orange:#dc6412; --red:#8c1212; --blue:#1f6f8b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
+
+  aside { width:230px; flex:0 0 230px; background:radial-gradient(circle at 50% 18%,#2c4558,var(--navy) 70%); padding:26px 16px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .avatar { width:80px; height:80px; border:1px solid #4d7390; border-radius:50%; margin:0 auto 26px; display:grid; place-items:center; }
+  .avatar svg { width:44px; height:44px; fill:#5b86a8; }
+  nav a { display:block; padding:11px 14px; margin-bottom:10px; border-radius:12px; color:#aebfcc; text-decoration:none; font-size:13.5px; background:rgba(0,0,0,.18); transition:.15s; }
+  nav a:hover, nav a.active { background:rgba(255,255,255,.15); color:#fff; }
+
+  main { flex:1; min-width:0; }
+  header { background:#fff; height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 28px; position:sticky; top:0; z-index:10; border-bottom:1px solid var(--line); }
+  header h1 { font-size:17px; font-weight:700; color:#6c7a86; }
+  header .h-right { display:flex; align-items:center; gap:12px; font-size:12.5px; color:var(--muted); }
+  header .dot { width:32px; height:32px; border-radius:50%; background:#dcdfe1; }
+
+  /* Thanh điều khiển Volume toàn cục */
+  .vol-bar { background:#fff; margin:18px 28px 0; padding:14px 20px; border-radius:18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,.03); }
+  .vol-left, .vol-right { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .vol-title { font-size:13px; font-weight:700; color:var(--navy); margin-right:4px; }
+  .vbtn { border:1px solid #d5dde2; background:#f6f8f9; color:var(--text); padding:6px 11px; border-radius:10px; font-size:12.5px; font-weight:600; cursor:pointer; transition:.15s; }
+  .vbtn:hover { border-color:var(--blue); color:var(--blue); }
+  .vbtn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .vbtn:disabled, .run-btn:disabled { opacity:.55; cursor:wait; }
+  .vinput { width:105px; padding:6px 10px; border:1px solid #d5dde2; border-radius:10px; font-size:12.5px; }
+  .vselect { padding:6px 10px; border:1px solid #d5dde2; border-radius:10px; font-size:12.5px; background:#f6f8f9; }
+  .run-btn { border:0; background:var(--blue); color:#fff; padding:7px 14px; border-radius:10px; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .run-btn:hover { background:var(--navy); }
+  .run-btn.alt { background:var(--orange); }
+  .status-pill { font-size:12px; padding:4px 10px; border-radius:10px; background:#e5f3de; color:var(--green); font-weight:600; }
+  .status-pill.busy { background:#fef4d6; color:#9b7400; }
+
+  .view { display:none; padding:18px 28px 40px; gap:22px; } .view.active { display:grid; }
+  .card { background:#fff; border-radius:22px; padding:22px 24px; min-width:0; }
+  .card h2 { font-size:14px; font-weight:600; color:#4a5b68; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  p, li { font-size:13.5px; line-height:1.65; color:#44525d; } ul { padding-left:18px; }
+  code { font-family:Consolas,monospace; font-size:12.5px; background:#eef2f3; padding:1px 6px; border-radius:6px; }
+
+  .tbl { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; }
+  th { text-align:left; background:#f3f6f7; color:#5c6b77; font-weight:600; }
+  th,td { padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td.w { white-space:normal; min-width:170px; } .num { text-align:right; }
+  tr.bad td { background:#fdf0ea; }
+  tr.active-vol td { background:#e8f4f8; font-weight:600; }
+  tr.click-row { cursor:pointer; } tr.click-row:hover td { background:#f2f7f9; }
+  .tag { display:inline-block; padding:2px 10px; border-radius:10px; background:#e5f3de; color:var(--green); font-size:12px; font-weight:600; }
+  .tag.err { background:#fbe3dc; color:var(--red); }
+  .tag.cur { background:#dff0f6; color:var(--blue); }
+
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+  .m { border-radius:16px; padding:14px 16px; background:#f6f8f9; border-top:5px solid var(--blue); }
+  .m:nth-child(4n+1){border-color:var(--green)} .m:nth-child(4n+2){border-color:var(--yellow)} .m:nth-child(4n+3){border-color:var(--orange)} .m:nth-child(4n){border-color:var(--red)}
+  .m span { font-size:12px; color:var(--muted); display:block; } .m b { display:block; font-size:22px; margin:4px 0 2px; }
+  .m em { font-style:normal; font-size:11.5px; color:var(--blue); display:block; margin-top:3px; }
+
+  .stages { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .stages div { padding:8px 14px; border-radius:12px; background:#e3e8eb; font-size:13px; color:#6d7b86; }
+  .stages div.on { background:var(--navy); color:#fff; font-weight:600; } .stages i { color:#9aa6b0; font-style:normal; }
+
+  pre { background:#14222d; color:#c9e4ee; padding:14px 16px; border-radius:14px; font:12.5px/1.6 Consolas,monospace; overflow:auto; white-space:pre; }
+  .log { white-space:pre-wrap; max-height:320px; }
+  .sub { font-size:13px; font-weight:600; color:#4a5b68; margin:16px 0 8px; }
+  .exp img { width:100%; border-radius:12px; border:1px solid var(--line); } .exp h3 { font-size:13px; margin-bottom:8px; color:#4a5b68; }
+  .bar { display:flex; height:22px; border-radius:11px; overflow:hidden; margin:6px 0; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:#55646f; margin-top:8px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; }
+  svg text { font-family:inherit; fill:#5c6b77; font-size:11px; } .chart { width:100%; height:auto; display:block; }
+  .flow text { fill:#1f2d3a; font-size:12px; } .flow .t { font-weight:700; font-size:13px; } .flow .s { fill:#5c6b77; font-size:11px; }
+
+  @media (max-width:1100px){ aside{display:none} .grid2,.grid3{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<aside>
+  <div class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-5 4-7.5 9-7.5s9 2.5 9 7.5z"/></svg></div>
+  <nav>
+    <a href="#" data-v="v51" data-t="5.1. Quy trình được lựa chọn">5.1. Quy trình</a>
+    <a href="#" data-v="v52" data-t="5.2. Bài toán &amp; đặc trưng Big Data">5.2. Bài toán &amp; Big Data</a>
+    <a href="#" data-v="v53" data-t="5.3. Input">5.3. Input</a>
+    <a href="#" data-v="v54" data-t="5.4. Output">5.4. Output</a>
+    <a href="#" data-v="v55" data-t="5.5. Công nghệ sử dụng">5.5. Công nghệ</a>
+    <a href="#" data-v="v56" data-t="5.6. Sơ đồ luồng xử lý">5.6. Sơ đồ luồng</a>
+    <a href="#" data-v="v57" data-t="5.7. Kết quả demo / thực nghiệm" class="active">5.7. Kết quả demo</a>
+    <a href="#" data-v="v58" data-t="5.8. Khả năng tái lập">5.8. Tái lập</a>
+  </nav>
+</aside>
+
+<main>
+  <header>
+    <h1 id="title">5.7. Kết quả demo / thực nghiệm</h1>
+    <div class="h-right">
+      <span id="run-status" class="status-pill">Sẵn sàng</span>
+      <div class="dot"></div>
+    </div>
+  </header>
+
+  <!-- THANH CHỌN SỐ BẢN GHI (VOLUME) ĐỂ CHẠY VÀ SO SÁNH -->
+  <div class="vol-bar">
+    <div class="vol-left">
+      <span class="vol-title">Volume (số bản ghi):</span>
+      <div id="preset-btns" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+    <div class="vol-right">
+      <input type="number" id="custom-rows" class="vinput" min="50" max="2000000" step="100" value="1500" placeholder="Số dòng...">
+      <button type="button" class="run-btn" id="btn-run-custom">Chạy mốc này</button>
+      <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">
+        Đối chiếu với:
+        <select id="compare-select" class="vselect"></select>
+      </label>
+    </div>
+  </div>
+
+  <!-- 5.1 -->
+  <div class="view" id="v51">
+    <section class="card"><h2>Vị trí trong pipeline</h2>
+      <div class="stages"><div>Sources</div><i>→</i><div>Ingestion</div><i>→</i><div>Storage</div><i>→</i><div class="on">Processing</div><i>→</i><div>Analytics</div><i>→</i><div>Presentation</div><i>→</i><div>Decision / Action</div></div>
+      <p style="margin-top:14px">Nhóm phụ trách quy trình <b>Storage → Processing</b>: nhận dữ liệu thô đã được lưu ở tầng Bronze, làm sạch, chuẩn hóa, lưu tối ưu xuống Silver và tổng hợp KPI ở Gold.</p>
+    </section>
+    <section class="card"><h2>Ranh giới và quan hệ với các giai đoạn khác</h2>
+      <div class="tbl"><table><thead><tr><th>Hạng mục</th><th>Mô tả</th></tr></thead><tbody>
+        <tr><td><b>Bắt đầu</b></td><td class="w">Đọc tệp CSV thô <code>data/bronze_raw/transactions_raw.csv</code> (đầu ra của Ingestion/Storage).</td></tr>
+        <tr><td><b>Kết thúc</b></td><td class="w">Ghi dữ liệu sạch phân vùng vào <code>data/silver_cleaned/</code> và KPI vào <code>data/gold_aggregated/</code>.</td></tr>
+        <tr><td><b>Giai đoạn trước</b></td><td class="w">Ingestion → Storage: thu thập và lưu dữ liệu thô vào Data Lake.</td></tr>
+        <tr><td><b>Giai đoạn sau</b></td><td class="w">Analytics: dùng Silver/Gold để truy vấn, thống kê và phân tích.</td></tr>
+      </tbody></table></div>
+    </section>
+  </div>
+
+  <!-- 5.2 -->
+  <div class="view" id="v52">
+    <section class="card"><h2>Bài toán thực tế</h2>
+      <p>Xử lý và chuẩn hóa dữ liệu giao dịch thương mại điện tử quy mô lớn. Dữ liệu thô chứa nhiều lỗi (trùng lặp, NULL, giá trị âm/ngoại lai, sai định dạng thời gian) nên cần một job xử lý tự động trước khi dùng cho phân tích.</p>
+    </section>
+    <section class="grid3" id="bd-cards"></section>
+    <section class="card"><h2>Vì sao cần cách tiếp cận Big Data? (Dẫn chứng từ các mốc Volume đã đo)</h2><ul id="bd-why"></ul></section>
+  </div>
+
+  <!-- 5.3 -->
+  <div class="view" id="v53">
+    <section class="card"><h2>Nguồn dữ liệu &amp; cách thu thập</h2>
+      <p>Dữ liệu giao dịch thương mại điện tử được sinh mô phỏng bằng <code>step1_generate_and_profile.py</code>, ghi ra tầng Bronze dưới dạng CSV UTF-8 (<code>data/bronze_raw/transactions_raw.csv</code>), có chủ đích chèn ~12% lỗi thực tế.</p>
+      <div class="metrics" id="in-m" style="margin-top:14px"></div>
+    </section>
+    <section class="grid2">
+      <div class="card"><h2>Schema đầu vào</h2><div class="tbl" id="in-schema"></div></div>
+      <div class="card"><h2>Thành phần dữ liệu thô (theo mốc Volume đang chọn)</h2><div class="tbl" id="in-quality"></div></div>
+    </section>
+    <section class="card"><h2>Ví dụ bản ghi đầu vào</h2><div class="tbl" id="in-samples"></div></section>
+  </div>
+
+  <!-- 5.4 -->
+  <div class="view" id="v54">
+    <section class="grid2">
+      <div class="card"><h2>Dữ liệu đã lưu</h2>
+        <p><b>Silver</b> – dữ liệu sạch, phân vùng theo <code>year/month</code>:</p>
+        <pre id="out-tree" style="margin:8px 0 12px"></pre>
+        <p id="out-storage"></p>
+        <p style="margin-top:8px"><b>Gold</b> – KPI tổng hợp: <code>data/gold_aggregated/kpi_revenue_by_category.json</code></p>
+      </div>
+      <div class="card"><h2>Bảng dữ liệu đã xử lý <code>silver_cleaned</code></h2><div class="tbl" id="out-schema"></div></div>
+    </section>
+    <section class="card"><h2>KPI đầu ra (theo mốc Volume đang chọn)</h2><div class="metrics" id="out-kpi"></div></section>
+    <section class="card"><h2>Ví dụ đầu ra</h2>
+      <div class="sub" style="margin-top:0">Silver – một bản ghi đã chuẩn hóa</div><pre id="ex-silver"></pre>
+      <div class="sub">Gold – <code>kpi_revenue_by_category.json</code></div><pre id="ex-gold"></pre>
+    </section>
+  </div>
+
+  <!-- 5.5 -->
+  <div class="view" id="v55">
+    <section class="card"><h2>Công nghệ sử dụng</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Công nghệ</th><th>Vai trò</th><th>Lý do lựa chọn</th><th>Vị trí trong kiến trúc</th></tr></thead>
+        <tbody>
+          <tr><td><b>Python 3</b></td><td class="w">Sinh dữ liệu, điều phối job, benchmark, web server.</td><td class="w">Hệ sinh thái dữ liệu phong phú; cả nhóm dùng chung một ngôn ngữ.</td><td class="w">Toàn pipeline</td></tr>
+          <tr><td><b>CSV (UTF-8)</b></td><td class="w">Định dạng dữ liệu thô đầu vào.</td><td class="w">Phổ biến, giống dữ liệu xuất từ hệ thống nguồn.</td><td class="w">Bronze – Storage</td></tr>
+          <tr><td><b>Apache Spark / PySpark (Engine xử lý theo lô)</b></td><td class="w">Lọc NULL, khử trùng lặp, lọc ngoại lai, chuẩn hóa và tổng hợp.</td><td class="w">Xử lý theo lô/phân vùng tốc độ cao, mở rộng tốt khi số bản ghi tăng.</td><td class="w">Bronze → Silver/Gold – Processing</td></tr>
+          <tr><td><b>Spark SQL</b></td><td class="w">Truy vấn tổng hợp KPI theo danh mục, khu vực, tháng.</td><td class="w">Khai báo ngắn gọn, gom nhóm trực tiếp trên dữ liệu sạch.</td><td class="w">Silver → Gold</td></tr>
+          <tr><td><b>Parquet nén, phân vùng year/month</b></td><td class="w">Lưu trữ nén có phân vùng ở tầng Silver.</td><td class="w">Giảm ~69% dung lượng, hỗ trợ Partition Pruning khi truy vấn theo tháng.</td><td class="w">Silver – Storage</td></tr>
+          <tr><td><b>Data Lake Medallion</b></td><td class="w">Tách dữ liệu thành Bronze / Silver / Gold.</td><td class="w">Truy vết được từ dữ liệu thô tới KPI, kiểm soát chất lượng theo tầng.</td><td class="w">Toàn bộ lưu trữ</td></tr>
+          <tr><td><b>JSON</b></td><td class="w">Lưu KPI tầng Gold và lịch sử thực nghiệm.</td><td class="w">Nhẹ, dễ đọc bằng người và máy.</td><td class="w">Gold, output_reports</td></tr>
+          <tr><td><b>Matplotlib</b></td><td class="w">Vẽ biểu đồ thực nghiệm benchmark.</td><td class="w">Xuất ảnh PNG dùng thẳng cho báo cáo.</td><td class="w">Benchmark</td></tr>
+          <tr><td><b>HTML / JavaScript + Python http.server</b></td><td class="w">Hiển thị kết quả và điều khiển chạy thử các mốc Volume trên web.</td><td class="w">Không cần cài thêm thư viện, chạy offline.</td><td class="w">Trình bày kết quả</td></tr>
+        </tbody></table></div>
+    </section>
+  </div>
+
+  <!-- 5.6 -->
+  <div class="view" id="v56">
+    <section class="card"><h2>Sơ đồ luồng dữ liệu từ Input đến Output</h2>
+      <svg class="flow" viewBox="0 0 1100 330" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5c6b77"/></marker></defs>
+        <g stroke="#5c6b77" stroke-width="2" fill="none" marker-end="url(#ar)">
+          <line x1="215" y1="75" x2="280" y2="75"/><line x1="500" y1="75" x2="565" y2="75"/><line x1="790" y1="75" x2="860" y2="75"/>
+          <path d="M677,125 L677,185 L440,185 L440,220"/><path d="M677,125 L677,185 L820,185 L820,220"/>
+        </g>
+        <rect x="10" y="25" width="205" height="100" rx="14" fill="#e8f1f6" stroke="#1f6f8b"/><text class="t" x="112" y="58" text-anchor="middle">Input</text><text class="t" x="112" y="78" text-anchor="middle">Bộ sinh dữ liệu giao dịch</text><text class="s" x="112" y="98" text-anchor="middle">step1 – chọn Volume (100 → 200K+)</text>
+        <rect x="280" y="25" width="220" height="100" rx="14" fill="#fdf3d6" stroke="#c9a40f"/><text class="t" x="390" y="58" text-anchor="middle">Bronze (Storage)</text><text x="390" y="78" text-anchor="middle">transactions_raw.csv</text><text class="s" x="390" y="98" text-anchor="middle">CSV UTF-8 – dữ liệu thô</text>
+        <rect x="565" y="25" width="225" height="100" rx="14" fill="#e6f3df" stroke="#338a0f"/><text class="t" x="677" y="58" text-anchor="middle">Processing</text><text x="677" y="78" text-anchor="middle">Lọc NULL · Khử trùng lặp · Ngoại lai</text><text class="s" x="677" y="98" text-anchor="middle">Chuẩn hóa thời gian · total_amount</text>
+        <rect x="860" y="25" width="230" height="100" rx="14" fill="#f3e7f7" stroke="#7b4a96"/><text class="t" x="975" y="58" text-anchor="middle">Log &amp; số liệu</text><text x="975" y="78" text-anchor="middle">pipeline_execution.log</text><text class="s" x="975" y="98" text-anchor="middle">volume_comparison_history.json</text>
+        <rect x="280" y="220" width="320" height="80" rx="14" fill="#e8eef2" stroke="#6b8394"/><text class="t" x="440" y="252" text-anchor="middle">Silver (Storage – Output 1)</text><text class="s" x="440" y="274" text-anchor="middle">Parquet nén · phân vùng year=/month=</text>
+        <rect x="680" y="220" width="280" height="80" rx="14" fill="#fbe9dc" stroke="#dc6412"/><text class="t" x="820" y="252" text-anchor="middle">Gold (Output 2)</text><text class="s" x="820" y="274" text-anchor="middle">Spark SQL → KPI JSON</text>
+      </svg>
+      <div class="tbl" style="margin-top:14px"><table><thead><tr><th>Luồng</th><th>Định dạng / giao thức</th><th>Nơi xử lý / lưu trữ</th></tr></thead><tbody>
+        <tr><td>Input → Bronze</td><td>CSV UTF-8, ghi theo lô (batch)</td><td>Hệ thống tệp Data Lake: <code>data/bronze_raw/</code></td></tr>
+        <tr><td>Bronze → Processing</td><td>Đọc tệp CSV theo lô</td><td>Engine xử lý tại máy chủ</td></tr>
+        <tr><td>Processing → Silver</td><td>Parquet nén, phân vùng year/month</td><td><code>data/silver_cleaned/</code></td></tr>
+        <tr><td>Silver → Gold</td><td>Truy vấn tổng hợp, kết quả JSON</td><td><code>data/gold_aggregated/</code></td></tr>
+      </tbody></table></div>
+    </section>
+  </div>
+
+  <!-- 5.7 -->
+  <div class="view active" id="v57">
+    <!-- KHỐI SO SÁNH VOLUME (100, 500, 1000, 1500, ... BẢN GHI) -->
+    <section class="card">
+      <h2>
+        <span>So sánh thực nghiệm theo Số lượng Bản ghi (Volume: 100 → 500 → 1,000 → 1,500 → ... bản ghi)</span>
+        <span class="tag cur" id="cur-vol-badge">Đang xem: –</span>
+      </h2>
+      <div class="grid2" style="margin-bottom:16px">
+        <div>
+          <div class="sub" style="margin-top:0">Thời gian xử lý &amp; tổng thời gian theo số bản ghi</div>
+          <div id="vol-time-chart"></div>
+          <div class="legend" id="vol-time-lg"></div>
+        </div>
+        <div>
+          <div class="sub" style="margin-top:0">Dung lượng Bronze CSV vs Silver nén theo số bản ghi</div>
+          <div id="vol-size-chart"></div>
+          <div class="legend" id="vol-size-lg"></div>
+        </div>
+      </div>
+      <div class="tbl" id="vol-compare-tbl"></div>
+    </section>
+
+    <section class="card">
+      <h2>
+        <span>Throughput, latency &amp; thời gian xử lý của mốc đang chọn</span>
+        <span style="font-size:12px;color:var(--muted)" id="compare-note"></span>
+      </h2>
+      <div class="metrics" id="d-m"></div>
+      <div class="sub">Thời gian theo từng pha</div><div class="bar" id="d-stage"></div><div class="legend" id="d-stage-lg"></div>
+    </section>
+
+    <section class="grid2">
+      <div class="card"><h2>Thống kê chất lượng dữ liệu</h2><div id="d-quality"></div><div class="legend" id="d-quality-lg"></div></div>
+      <div class="card"><h2>Doanh thu theo danh mục (Gold)</h2><div id="d-cat"></div></div>
+    </section>
+
+    <section class="card"><h2>Dữ liệu trước xử lý (Bronze) – bản ghi lỗi được tô nền</h2><div class="tbl" id="d-before"></div></section>
+    <section class="card"><h2>Dữ liệu sau xử lý (Silver)</h2><div class="tbl" id="d-after"></div></section>
+
+    <section class="card"><h2>Kết quả truy vấn tổng hợp (Spark SQL)</h2>
+      <div class="sub" style="margin-top:0">Theo danh mục</div><div class="tbl" id="q-cat"></div>
+      <div class="sub">Theo khu vực</div><div class="tbl" id="q-city"></div>
+      <div class="sub">Theo tháng (kèm phân vùng Silver)</div><div class="tbl" id="q-month"></div>
+    </section>
+
+    <section class="card"><h2>Biểu đồ thực nghiệm tổng hợp (PNG xuất cho báo cáo)</h2><div class="grid3" id="d-charts"></div></section>
+    <section class="card"><h2>Log thực thi của mốc đang chọn</h2><pre class="log" id="d-log"></pre></section>
+  </div>
+
+  <!-- 5.8 -->
+  <div class="view" id="v58">
+    <section class="grid2">
+      <div class="card"><h2>Môi trường</h2><ul id="env-list"></ul></div>
+      <div class="card"><h2>Mã nguồn &amp; dữ liệu</h2>
+        <ul>
+          <li><code>src/config.py</code> – đường dẫn Data Lake và Data Contract.</li>
+          <li><code>src/step1_generate_and_profile.py</code> – script sinh dữ liệu và kiểm định đầu vào.</li>
+          <li><code>src/step2_spark_processing.py</code> – job làm sạch, chuẩn hóa, ghi Silver/Gold.</li>
+          <li><code>src/step3_benchmark_and_charts.py</code> – thực nghiệm đa mốc Volume và vẽ biểu đồ.</li>
+          <li><code>run_pipeline.py</code> – chạy toàn bộ pipeline bằng một lệnh.</li>
+        </ul></div>
+    </section>
+    <section class="card"><h2>Hướng dẫn chạy</h2>
+<pre>py -m pip install -r requirements.txt     # 1. Cài thư viện
+py run_pipeline.py --rows 200000          # 2. Sinh dữ liệu + xử lý + benchmark
+py src/web_dashboard.py                   # 3. Mở web tại http://localhost:8080</pre>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const nf = (n) => Number(n || 0).toLocaleString("en-US");
+const usd = (n) => "$" + nf(Math.round(n || 0));
+const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const compact = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(Math.round(n));
+const fmtSize = (kb, mb) => (kb !== undefined && kb < 1024) ? `${kb} KB` : `${mb} MB`;
+const fmtSec = (s) => Number(s || 0) < 0.1 ? `${(Number(s || 0) * 1000).toFixed(1)} ms (${s}s)` : `${s} s`;
+const COLORS = ["#338a0f", "#f0c91f", "#dc6412", "#8c1212", "#1f6f8b", "#7a8b99"];
+const PRESETS = [100, 500, 1000, 1500, 5000, 10000, 50000, 100000, 200000];
+const BCOLS = ["transaction_id", "user_id", "product_id", "category", "price", "quantity", "event_time", "payment_method", "city", "status"];
+
+let STATE = null;
+let ACTIVE_ROWS = null;
+let COMPARE_ROWS = null;
+
+function m(label, val, sub, deltaHtml = "") {
+  return `<div class="m"><span>${label}</span><b>${val}</b><span>${sub || ""}</span>${deltaHtml ? `<em>${deltaHtml}</em>` : ""}</div>`;
+}
+
+function table(head, rows, numCols = []) {
+  const n = (i) => (numCols.includes(i) ? ' class="num"' : "");
+  return `<table><thead><tr>${head.map((h, i) => `<th${n(i)}>${h}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map((r) => `<tr class="${r.cls || ""}" ${r.attr || ""}>${r.c.map((c, i) => `<td${n(i)}>${c}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
+}
+const plain = (rows) => rows.map((c) => ({ c }));
+const reason = (r) => r.user_id === "NULL" || r.price === "NULL" ? "NULL" : (parseFloat(r.price) <= 0 || parseInt(r.quantity, 10) <= 0) ? "Giá trị âm" : String(r.event_time).includes("INVALID") ? "Sai thời gian" : "Hợp lệ";
+
+function niceMax(v) {
+  if (!v || v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v))), x = v / p;
+  return (x <= 1 ? 1 : x <= 2 ? 2 : x <= 5 ? 5 : 10) * p;
+}
+
+function barChart(el, data) {
+  if (!data.length) { el.innerHTML = ""; return; }
+  const W = 560, H = 260, L = 52, B = 42, T = 16, R = 8, mx = niceMax(Math.max(...data.map((d) => d.v), 1)), bw = (W - L - R) / data.length;
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  for (let i = 0; i <= 4; i++) {
+    const y = T + (H - T - B) * (1 - i / 4);
+    s += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#e8edf0"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${compact(mx * i / 4)}</text>`;
+  }
+  data.forEach((d, i) => {
+    const h = (H - T - B) * d.v / mx, x = L + i * bw + bw * .18, w = bw * .64, y = H - B - h;
+    s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${COLORS[i % 6]}"><title>${esc(d.k)}: ${usd(d.v)}</title></rect><text x="${x + w / 2}" y="${y - 5}" text-anchor="middle">${compact(d.v)}</text><text x="${x + w / 2}" y="${H - B + 16}" text-anchor="middle">${esc(d.k)}</text>`;
+  });
+  el.innerHTML = s + "</svg>";
+}
+
+function donut(el, lg, data) {
+  const S = 235, c = S / 2, r = 86, sw = 34, C = 2 * Math.PI * r, tot = data.reduce((a, d) => a + d.v, 0) || 1;
+  let off = 0, l = "", s = `<svg class="chart" style="max-width:250px;margin:0 auto" viewBox="0 0 ${S} ${S}">`;
+  data.forEach((d, i) => {
+    const len = C * d.v / tot;
+    s += `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${COLORS[i % 6]}" stroke-width="${sw}" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${c} ${c})"><title>${esc(d.k)}: ${nf(d.v)}</title></circle>`;
+    off += len;
+    l += `<span><i style="background:${COLORS[i % 6]}"></i>${esc(d.k)}: ${nf(d.v)} (${(d.v * 100 / tot).toFixed(1)}%)</span>`;
+  });
+  el.innerHTML = s + `<text x="${c}" y="${c + 6}" text-anchor="middle" style="font-size:19px;font-weight:700;fill:#1f2d3a">${nf(tot)}</text></svg>`;
+  lg.innerHTML = l;
+}
+
+/* Biểu đồ đường so sánh thời gian xử lý qua các mốc Volume */
+function renderVolumeTimeChart(el, lg, hist, activeRows) {
+  if (!hist.length) { el.innerHTML = ""; return; }
+  const W = 560, H = 240, L = 52, B = 42, T = 20, R = 18;
+  const maxY = Math.max(...hist.map((h) => h.total_pipeline_sec || h.processing_time_sec), 0.01) * 1.12;
+  const px = (i) => L + (hist.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (hist.length - 1));
+  const py = (v) => T + (H - T - B) * (1 - v / maxY);
+
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  for (let i = 0; i <= 4; i++) {
+    const val = maxY * i / 4, y = py(val);
+    s += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#e8edf0"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${val < 1 ? val.toFixed(2) : val.toFixed(1)}s</text>`;
+  }
+  const pTot = hist.map((h, i) => `${px(i)},${py(h.total_pipeline_sec)}`).join(" ");
+  const pProc = hist.map((h, i) => `${px(i)},${py(h.processing_time_sec)}`).join(" ");
+  s += `<polyline fill="none" stroke="#dc6412" stroke-width="2.5" points="${pTot}"/>`;
+  s += `<polyline fill="none" stroke="#1f6f8b" stroke-width="2.5" points="${pProc}"/>`;
+
+  hist.forEach((h, i) => {
+    const x = px(i), y1 = py(h.total_pipeline_sec), y2 = py(h.processing_time_sec), isCur = h.rows === activeRows;
+    s += `<circle cx="${x}" cy="${y1}" r="${isCur ? 6 : 4}" fill="#dc6412"><title>${nf(h.rows)} dòng – Tổng: ${h.total_pipeline_sec}s</title></circle>`;
+    s += `<circle cx="${x}" cy="${y2}" r="${isCur ? 6 : 4}" fill="#1f6f8b"><title>${nf(h.rows)} dòng – Xử lý: ${h.processing_time_sec}s</title></circle>`;
+    s += `<text x="${x}" y="${y2 - 8}" text-anchor="middle" style="font-size:10px;font-weight:${isCur ? 700 : 400}">${h.processing_time_sec}s</text>`;
+    s += `<text x="${x}" y="${H - B + 16}" text-anchor="middle" style="font-weight:${isCur ? 700 : 400}">${compact(h.rows)}</text>`;
+  });
+  el.innerHTML = s + "</svg>";
+  lg.innerHTML = `<span><i style="background:#1f6f8b"></i>Thời gian xử lý Step 2 (s)</span><span><i style="background:#dc6412"></i>Tổng thời gian Sinh + Xử lý (s)</span>`;
+}
+
+/* Biểu đồ cột đôi so sánh dung lượng Bronze vs Silver qua các mốc Volume */
+function renderVolumeSizeChart(el, lg, hist, activeRows) {
+  if (!hist.length) { el.innerHTML = ""; return; }
+  const W = 560, H = 240, L = 56, B = 42, T = 20, R = 12;
+  const maxKB = Math.max(...hist.map((h) => h.bronze_kb || (h.bronze_mb * 1024)), 1) * 1.12;
+  const gw = (W - L - R) / hist.length;
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  for (let i = 0; i <= 4; i++) {
+    const val = maxKB * i / 4, y = T + (H - T - B) * (1 - i / 4);
+    const lbl = val >= 1024 ? (val / 1024).toFixed(1) + "M" : Math.round(val) + "K";
+    s += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#e8edf0"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${lbl}</text>`;
+  }
+  hist.forEach((h, i) => {
+    const bKB = h.bronze_kb || (h.bronze_mb * 1024), sKB = h.silver_kb || (h.silver_mb * 1024);
+    const h1 = (H - T - B) * bKB / maxKB, h2 = (H - T - B) * sKB / maxKB;
+    const x0 = L + i * gw + gw * 0.16, bw = gw * 0.32, isCur = h.rows === activeRows;
+    s += `<rect x="${x0}" y="${H - B - h1}" width="${bw}" height="${Math.max(h1, 2)}" rx="3" fill="#dc6412"><title>${nf(h.rows)} dòng – Bronze: ${fmtSize(h.bronze_kb, h.bronze_mb)}</title></rect>`;
+    s += `<rect x="${x0 + bw + 2}" y="${H - B - h2}" width="${bw}" height="${Math.max(h2, 2)}" rx="3" fill="#338a0f"><title>${nf(h.rows)} dòng – Silver: ${fmtSize(h.silver_kb, h.silver_mb)} (-${h.storage_saving_pct}%)</title></rect>`;
+    s += `<text x="${x0 + bw}" y="${H - B - Math.max(h1, h2) - 5}" text-anchor="middle" style="font-size:9.5px">-${Math.round(h.storage_saving_pct)}%</text>`;
+    s += `<text x="${x0 + bw}" y="${H - B + 16}" text-anchor="middle" style="font-weight:${isCur ? 700 : 400}">${compact(h.rows)}</text>`;
+  });
+  el.innerHTML = s + "</svg>";
+  lg.innerHTML = `<span><i style="background:#dc6412"></i>Bronze CSV</span><span><i style="background:#338a0f"></i>Silver nén (tiết kiệm %)</span>`;
+}
+
+function getActiveEntry() {
+  const hist = (STATE && STATE.history) || [];
+  const found = hist.find((h) => h.rows === ACTIVE_ROWS);
+  if (found && found.summary && found.profiling) return found;
+  return {
+    rows: (STATE.summary && STATE.summary.raw_row_count) || 0,
+    summary: STATE.summary || {},
+    profiling: STATE.profiling || {},
+    logs: STATE.logs || "",
+  };
+}
+
+function renderControls() {
+  const hist = (STATE && STATE.history) || [];
+  const recordedSet = new Set(hist.map((h) => h.rows));
+  const allPresets = Array.from(new Set([...PRESETS, ...hist.map((h) => h.rows)])).sort((a, b) => a - b);
+
+  $("preset-btns").innerHTML = allPresets.map((v) => {
+    const isAct = v === ACTIVE_ROWS;
+    const hasRec = recordedSet.has(v);
+    return `<button type="button" class="vbtn ${isAct ? "active" : ""}" onclick="selectOrRunVolume(${v})">${nf(v)}${hasRec ? "" : " *"}</button>`;
+  }).join("");
+
+  const others = hist.filter((h) => h.rows !== ACTIVE_ROWS);
+  if (!COMPARE_ROWS || COMPARE_ROWS === ACTIVE_ROWS || !recordedSet.has(COMPARE_ROWS)) {
+    const smaller = hist.filter((h) => h.rows < ACTIVE_ROWS);
+    const larger = hist.filter((h) => h.rows > ACTIVE_ROWS);
+    COMPARE_ROWS = smaller.length ? smaller[smaller.length - 1].rows : (larger.length ? larger[0].rows : null);
+  }
+  $("compare-select").innerHTML = others.map((h) => `<option value="${h.rows}" ${h.rows === COMPARE_ROWS ? "selected" : ""}>${nf(h.rows)} bản ghi</option>`).join("");
+}
+
+function render(d) {
+  STATE = d;
+  const hist = d.history || [];
+  if (!ACTIVE_ROWS) {
+    ACTIVE_ROWS = (d.summary && d.summary.raw_row_count) || (hist.length ? hist[hist.length - 1].rows : 200000);
+  }
+  renderControls();
+
+  const cur = getActiveEntry();
+  const s = cur.summary || {}, p = cur.profiling || {}, t = s.stage_timings || {}, e = s.error_breakdown || {};
+  const before = s.before_samples || [], after = s.after_samples || [], parts = s.partitions || [];
+  const ref = hist.find((h) => h.rows === Number(COMPARE_ROWS));
+
+  $("cur-vol-badge").textContent = `Đang xem: ${nf(s.raw_row_count)} bản ghi`;
+
+  /* Bảng & biểu đồ so sánh đa mốc Volume */
+  renderVolumeTimeChart($("vol-time-chart"), $("vol-time-lg"), hist, ACTIVE_ROWS);
+  renderVolumeSizeChart($("vol-size-chart"), $("vol-size-lg"), hist, ACTIVE_ROWS);
+
+  $("vol-compare-tbl").innerHTML = table(
+    ["Volume (bản ghi)", "Bản ghi sạch", "Bản ghi lỗi", "Bronze → Silver", "Tiết kiệm", "T.gian Sinh", "Đọc & Lọc", "Ghi Silver", "Tổng xử lý", "Thông lượng", "Độ trễ/dòng", "Doanh thu Gold", "Thao tác"],
+    hist.map((h) => {
+      const isCur = h.rows === ACTIVE_ROWS;
+      return {
+        cls: `click-row ${isCur ? "active-vol" : ""}`,
+        attr: `onclick="switchSnapshot(${h.rows})"`,
+        c: [
+          `<b>${nf(h.rows)}</b>`,
+          `${nf(h.clean_rows)} (${h.clean_pct}%)`,
+          nf(h.dropped_rows),
+          `${fmtSize(h.bronze_kb, h.bronze_mb)} → ${fmtSize(h.silver_kb, h.silver_mb)}`,
+          `-${h.storage_saving_pct}%`,
+          `${h.gen_time_sec}s`,
+          `${h.read_clean_sec}s`,
+          `${h.write_sec}s`,
+          `<b>${h.processing_time_sec}s</b>`,
+          `${nf(h.throughput_rows_per_sec)}/s`,
+          `${h.latency_us_per_row} µs`,
+          usd(h.total_revenue),
+          isCur ? `<span class="tag cur">Đang hiển thị</span>` : `<button type="button" class="vbtn" onclick="event.stopPropagation();switchSnapshot(${h.rows})">Xem kết quả</button>`,
+        ],
+      };
+    }),
+    [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]
+  );
+
+  /* Tính chênh lệch (delta) với mốc đối chiếu */
+  let dTime = "", dRows = "", dSize = "", dThr = "";
+  if (ref) {
+    const rDesc = s.raw_row_count >= ref.rows
+      ? `gấp ${(s.raw_row_count / Math.max(ref.rows, 1)).toFixed(1)}× số dòng`
+      : `bằng 1/${(ref.rows / Math.max(s.raw_row_count, 1)).toFixed(1)}× số dòng`;
+    const tDesc = s.processing_time_sec >= ref.processing_time_sec
+      ? `thời gian gấp ${(s.processing_time_sec / Math.max(ref.processing_time_sec, 0.0001)).toFixed(2)}×`
+      : `nhanh hơn ${(ref.processing_time_sec / Math.max(s.processing_time_sec, 0.0001)).toFixed(2)}×`;
+    $("compare-note").textContent = `Đối chiếu ${nf(s.raw_row_count)} với ${nf(ref.rows)} bản ghi (${rDesc} → ${tDesc})`;
+    dTime = `Mốc ${nf(ref.rows)} dòng: ${ref.processing_time_sec}s (${tDesc})`;
+    dRows = `Mốc ${nf(ref.rows)} dòng: ${nf(ref.clean_rows)} sạch`;
+    dSize = `Mốc ${nf(ref.rows)} dòng: tiết kiệm ${ref.storage_saving_pct}%`;
+    dThr = `Mốc ${nf(ref.rows)} dòng: ${nf(ref.throughput_rows_per_sec)}/s`;
+  } else {
+    $("compare-note").textContent = "";
+  }
+
+  /* 5.2 */
+  const minH = hist[0] || {}, maxH = hist[hist.length - 1] || {};
+  const errPct = (100 - (s.clean_percentage || 0)).toFixed(2);
+  $("bd-cards").innerHTML =
+    `<div class="card"><h2>Volume – khối lượng</h2><p>Đang chọn <b>${nf(s.raw_row_count)}</b> bản ghi (${fmtSize(s.bronze_csv_size_kb, s.bronze_csv_size_mb)}). Hệ thống cho phép thay đổi trực tiếp từ <b>${nf(minH.rows || 100)}</b> đến <b>${nf(maxH.rows || 200000)}</b> bản ghi để kiểm chứng khả năng mở rộng.</p></div>` +
+    `<div class="card"><h2>Velocity – tốc độ</h2><p>Sinh dữ liệu đạt <b>${nf(p.throughput_rows_per_sec)}</b> bản ghi/s; xử lý đạt <b>${nf(s.throughput_rows_per_sec)}</b> bản ghi/s, độ trễ <b>${t.avg_latency_us_per_row} µs</b>/bản ghi.</p></div>` +
+    `<div class="card"><h2>Veracity – độ tin cậy</h2><p>Tại mốc <b>${nf(s.raw_row_count)}</b> dòng, phát hiện và loại bỏ <b>${nf(s.removed_invalid_or_dup_rows)}</b> bản ghi lỗi (${errPct}%): trùng lặp ${nf(e.duplicate_rows)}, NULL ${nf(e.null_rows)}, ngoại lai ${nf(e.outlier_negative_rows)}, sai thời gian ${nf(e.invalid_date_rows)}.</p></div>`;
+  $("bd-why").innerHTML =
+    `<li>Khi tăng từ <b>${nf(minH.rows)}</b> lên <b>${nf(maxH.rows)}</b> bản ghi (gấp <b>${nf(Math.round((maxH.rows || 1) / Math.max(minH.rows || 1, 1)))} lần</b>), thời gian xử lý tăng tuyến tính từ <b>${minH.processing_time_sec}s</b> lên <b>${maxH.processing_time_sec}s</b>.</li>` +
+    `<li>Ở mốc nhỏ (${nf(minH.rows)} dòng), chi phí tạo 12 phân vùng khiến mức tiết kiệm đạt <b>${minH.storage_saving_pct}%</b>; khi lên quy mô lớn (${nf(maxH.rows)} dòng), nén theo phân vùng đạt hiệu quả tối ưu <b>${maxH.storage_saving_pct}%</b> (${maxH.bronze_mb} MB xuống ${maxH.silver_mb} MB).</li>` +
+    `<li>Truy vấn tháng 06 nhờ Partition Pruning chỉ đọc 1/12 dữ liệu thay vì quét toàn bộ tệp CSV.</li>`;
+
+  /* 5.3 */
+  $("in-m").innerHTML =
+    m("Số bản ghi thô", nf(s.raw_row_count), "giao dịch", dRows) +
+    m("Dung lượng Bronze", fmtSize(s.bronze_csv_size_kb, s.bronze_csv_size_mb), "CSV UTF-8") +
+    m("Thời gian & tốc độ sinh", `${p.generation_time_sec} s`, `${nf(p.throughput_rows_per_sec)} dòng/s`) +
+    m("Số trường", Object.keys(d.schema || {}).length, "cột đầu vào");
+  $("in-schema").innerHTML = table(["Trường", "Kiểu và ý nghĩa"], plain(Object.entries(d.schema || {}).map(([k, v]) => [`<code>${esc(k)}</code>`, esc(v)])));
+  $("in-quality").innerHTML = table(["Thành phần", "Số bản ghi"], plain([
+    ["Hợp lệ", nf(p.clean_rows_injected)],
+    ["Giá trị NULL", nf(p.null_injected)],
+    ["Giá trị âm / bằng 0", nf(p.negative_or_zero_injected)],
+    ["Sai định dạng thời gian", nf(p.invalid_date_injected)],
+    ["Trùng lặp", nf(p.duplicate_injected)],
+    ["<b>Tổng</b>", `<b>${nf(p.total_generated)}</b>`],
+  ]), [1]);
+  $("in-samples").innerHTML = table(BCOLS, before.slice(0, 6).map((r) => ({ c: BCOLS.map((c) => esc(r[c])), cls: reason(r) !== "Hợp lệ" ? "bad" : "" })));
+
+  /* 5.4 */
+  $("out-tree").textContent = "data/silver_cleaned/\n  └── year=2025/\n" + parts.map((x, i) => `        ${i === parts.length - 1 ? "└" : "├"}── ${x.partition.split("/")[1]}/part-00000.snappy.parquet.gz  (${nf(x.row_count)} dòng, ${x.size_kb} KB)`).join("\n");
+  $("out-storage").innerHTML = `Dung lượng giảm từ <b>${fmtSize(s.bronze_csv_size_kb, s.bronze_csv_size_mb)}</b> (Bronze) xuống <b>${fmtSize(s.silver_parquet_size_kb, s.silver_parquet_size_mb)}</b> (Silver), tiết kiệm <b>${s.storage_saving_percent}%</b>.`;
+  const rules = { transaction_id: "Khóa chính, khử trùng lặp", user_id: "Loại bỏ NULL", product_id: "Mã sản phẩm", category: "Ngành hàng", price: "price > 0", quantity: "quantity > 0", total_amount: "Sinh mới = price × quantity", event_time: "Chuẩn hóa timestamp, loại bản ghi lỗi", year: "Sinh mới – khóa phân vùng", month: "Sinh mới – khóa phân vùng", payment_method: "Phương thức thanh toán", city: "Khu vực", status: "COMPLETED / PENDING / CANCELLED / REFUNDED" };
+  const a0 = after[0] || {};
+  $("out-schema").innerHTML = table(["Trường", "Kiểu", "Quy tắc xử lý"], plain(Object.keys(a0).map((k) => [`<code>${k}</code>`, typeof a0[k] === "number" ? (Number.isInteger(a0[k]) ? "Int" : "Double") : "String", rules[k] || ""])));
+  $("out-kpi").innerHTML =
+    m("Bản ghi sạch", nf(s.clean_row_count), `${s.clean_percentage}% tổng số`, dRows) +
+    m("Bản ghi bị loại", nf(s.removed_invalid_or_dup_rows), "lỗi hoặc trùng lặp") +
+    m("Số phân vùng", parts.length, "year/month") +
+    m("Tiết kiệm lưu trữ", (s.storage_saving_percent || 0) + "%", `${fmtSize(s.bronze_csv_size_kb, s.bronze_csv_size_mb)} → ${fmtSize(s.silver_parquet_size_kb, s.silver_parquet_size_mb)}`, dSize);
+  $("ex-silver").textContent = JSON.stringify(a0, null, 2);
+  $("ex-gold").textContent = JSON.stringify((s.gold_kpi_by_category || []).slice(0, 2), null, 2);
+
+  /* 5.7 */
+  $("d-m").innerHTML =
+    m("Throughput", nf(s.throughput_rows_per_sec), "bản ghi / giây", dThr) +
+    m("Tổng thời gian xử lý", fmtSec(s.processing_time_sec), `${nf(s.raw_row_count)} bản ghi`, dTime) +
+    m("Độ trễ trung bình", (t.avg_latency_us_per_row || 0) + " µs", "mỗi bản ghi") +
+    m("Truy vấn SQL", (t.sql_aggregation_ms || 0) + " ms", "3 truy vấn tổng hợp") +
+    m("Dữ liệu sạch", (s.clean_percentage || 0) + "%", `${nf(s.clean_row_count)} sạch / loại ${nf(s.removed_invalid_or_dup_rows)}`, dRows) +
+    m("Tiết kiệm lưu trữ", (s.storage_saving_percent || 0) + "%", `${fmtSize(s.bronze_csv_size_kb, s.bronze_csv_size_mb)} → ${fmtSize(s.silver_parquet_size_kb, s.silver_parquet_size_mb)}`, dSize);
+
+  const tot = (t.read_and_clean_sec || 0) + (t.parquet_write_sec || 0) || 1;
+  $("d-stage").innerHTML = `<div style="width:${t.read_and_clean_sec / tot * 100}%;background:#1f6f8b"></div><div style="width:${t.parquet_write_sec / tot * 100}%;background:#dc6412"></div>`;
+  $("d-stage-lg").innerHTML = `<span><i style="background:#1f6f8b"></i>Đọc và làm sạch: ${t.read_and_clean_sec} s</span><span><i style="background:#dc6412"></i>Ghi Silver: ${t.parquet_write_sec} s</span><span><i style="background:#7a8b99"></i>Truy vấn SQL: ${t.sql_aggregation_ms} ms</span>`;
+
+  donut($("d-quality"), $("d-quality-lg"), [
+    { k: "Hợp lệ", v: s.clean_row_count || 0 },
+    { k: "Trùng lặp", v: e.duplicate_rows || 0 },
+    { k: "NULL", v: e.null_rows || 0 },
+    { k: "Ngoại lai", v: e.outlier_negative_rows || 0 },
+    { k: "Sai thời gian", v: e.invalid_date_rows || 0 },
+  ]);
+  barChart($("d-cat"), (s.gold_kpi_by_category || []).map((x) => ({ k: x.category, v: x.total_revenue })));
+
+  $("d-before").innerHTML = table([...BCOLS, "Kết quả"], before.map((r) => {
+    const x = reason(r);
+    return { c: [...BCOLS.map((c) => esc(r[c])), `<span class="tag ${x === "Hợp lệ" ? "" : "err"}">${x}</span>`], cls: x !== "Hợp lệ" ? "bad" : "" };
+  }));
+  const ac = Object.keys(a0);
+  $("d-after").innerHTML = table(ac, after.map((r) => ({ c: ac.map((c) => esc(r[c])) })));
+
+  $("q-cat").innerHTML = table(["Danh mục", "Số đơn", "Sản phẩm bán", "Doanh thu", "AOV"], plain((s.gold_kpi_by_category || []).map((x) => [x.category, nf(x.total_orders), nf(x.total_items_sold), "$" + nf(x.total_revenue), "$" + nf(x.avg_order_value)])), [1, 2, 3, 4]);
+  $("q-city").innerHTML = table(["Khu vực", "Tổng đơn", "Hoàn tất", "Đã hủy", "Tỷ lệ hoàn tất", "Doanh thu"], plain((s.gold_kpi_by_city || []).map((x) => [x.city, nf(x.total_orders), nf(x.completed_orders), nf(x.cancelled_orders), x.completion_rate_pct + "%", "$" + nf(x.total_revenue)])), [1, 2, 3, 4, 5]);
+  const pm = {}; parts.forEach((x) => (pm[x.partition] = x));
+  $("q-month").innerHTML = table(["Tháng", "Phân vùng Silver", "Dòng", "Dung lượng", "Đơn hoàn tất", "Doanh thu"], plain((s.gold_kpi_by_month || []).map((x) => {
+    const [y, mo] = x.year_month.split("-"), k = `year=${y}/month=${mo}`, i = pm[k] || { row_count: 0, size_kb: 0 };
+    return [x.year_month, `<code>${k}</code>`, nf(i.row_count), i.size_kb + " KB", nf(x.total_orders), "$" + nf(x.total_revenue)];
+  })), [2, 3, 4, 5]);
+
+  const names = { "exp1_volume_scaling.png": "Tăng khối lượng dữ liệu", "exp2_cpu_parallelism.png": "Xử lý đa luồng trên 12 phân vùng", "exp3_storage_comparison.png": "Bronze CSV so với Silver Partitioned" };
+  $("d-charts").innerHTML = (d.charts || []).map((c) => `<div class="exp"><h3>${names[c] || c}</h3><img src="/charts/${c}" alt="${c}"></div>`).join("");
+  $("d-log").textContent = cur.logs || d.logs || "";
+
+  /* 5.8 */
+  $("env-list").innerHTML = `<li>Python ${esc(d.env && d.env.python)} (${esc(d.env && d.env.os)})</li><li>Thư viện: xem <code>requirements.txt</code>.</li><li>Dữ liệu: script sinh dữ liệu <code>step1_generate_and_profile.py</code> (tham số <code>--rows</code>).</li>`;
+}
+
+function switchSnapshot(rows) {
+  ACTIVE_ROWS = Number(rows);
+  COMPARE_ROWS = null;
+  $("custom-rows").value = ACTIVE_ROWS;
+  render(STATE);
+}
+
+async function runVolumeLive(rows) {
+  const st = $("run-status");
+  st.textContent = `Đang chạy ${nf(rows)} bản ghi...`;
+  st.classList.add("busy");
+  document.querySelectorAll(".vbtn, .run-btn").forEach((b) => (b.disabled = true));
+  try {
+    const res = await fetch("/api/run-volume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows: Number(rows) }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    ACTIVE_ROWS = Number(rows);
+    render(data);
+    st.textContent = `Đã chạy xong ${nf(rows)} bản ghi`;
+  } catch (err) {
+    st.textContent = "Lỗi: " + err.message;
+  } finally {
+    st.classList.remove("busy");
+    document.querySelectorAll(".vbtn, .run-btn").forEach((b) => (b.disabled = false));
+  }
+}
+
+function selectOrRunVolume(rows) {
+  $("custom-rows").value = rows;
+  const hist = (STATE && STATE.history) || [];
+  const exists = hist.find((h) => h.rows === Number(rows));
+  if (exists && exists.summary) {
+    switchSnapshot(rows);
+  } else {
+    runVolumeLive(rows);
+  }
+}
+
+$("btn-run-custom").addEventListener("click", () => {
+  const v = Math.max(10, Math.min(2000000, parseInt($("custom-rows").value || "1000", 10)));
+  $("custom-rows").value = v;
+  runVolumeLive(v);
+});
+
+$("compare-select").addEventListener("change", (ev) => {
+  COMPARE_ROWS = Number(ev.target.value);
+  render(STATE);
+});
+
+function show(id, title) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === id));
+  $("title").innerHTML = title;
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", (ev) => {
+  ev.preventDefault();
+  document.querySelectorAll("nav a").forEach((x) => x.classList.remove("active"));
+  a.classList.add("active");
+  show(a.dataset.v, a.dataset.t);
+}));
+
+fetch("/api/report").then((r) => r.json()).then(render).catch((e) => { $("d-log").textContent = "Không tải được dữ liệu: " + e.message; });
+</script>
+</body>
+</html>

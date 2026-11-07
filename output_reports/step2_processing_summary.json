@@ -1,0 +1,594 @@
+{
+    "engine": "PySpark DataFrame Engine (local[*])",
+    "last_run_timestamp": "2026-11-07 18:48:56",
+    "raw_row_count": 50000,
+    "clean_row_count": 43922,
+    "removed_invalid_or_dup_rows": 6078,
+    "error_breakdown": {
+        "duplicate_rows": 2023,
+        "null_rows": 2040,
+        "outlier_negative_rows": 1262,
+        "invalid_date_rows": 753
+    },
+    "clean_percentage": 87.84,
+    "bronze_csv_size_kb": 4799.51,
+    "bronze_csv_size_mb": 4.69,
+    "silver_parquet_size_kb": 1491.37,
+    "silver_parquet_size_mb": 1.46,
+    "storage_saving_percent": 68.93,
+    "processing_time_sec": 0.95,
+    "stage_timings": {
+        "read_and_clean_sec": 0.575,
+        "parquet_write_sec": 0.363,
+        "sql_aggregation_ms": 0.51,
+        "avg_latency_us_per_row": 18.99
+    },
+    "throughput_rows_per_sec": 52654,
+    "partitions": [
+        {
+            "partition": "year=2025/month=01",
+            "row_count": 3743,
+            "size_kb": 127.02
+        },
+        {
+            "partition": "year=2025/month=02",
+            "row_count": 3381,
+            "size_kb": 114.74
+        },
+        {
+            "partition": "year=2025/month=03",
+            "row_count": 3725,
+            "size_kb": 126.45
+        },
+        {
+            "partition": "year=2025/month=04",
+            "row_count": 3487,
+            "size_kb": 118.48
+        },
+        {
+            "partition": "year=2025/month=05",
+            "row_count": 3769,
+            "size_kb": 127.97
+        },
+        {
+            "partition": "year=2025/month=06",
+            "row_count": 3550,
+            "size_kb": 120.73
+        },
+        {
+            "partition": "year=2025/month=07",
+            "row_count": 3815,
+            "size_kb": 129.57
+        },
+        {
+            "partition": "year=2025/month=08",
+            "row_count": 3699,
+            "size_kb": 125.7
+        },
+        {
+            "partition": "year=2025/month=09",
+            "row_count": 3623,
+            "size_kb": 123.09
+        },
+        {
+            "partition": "year=2025/month=10",
+            "row_count": 3721,
+            "size_kb": 126.29
+        },
+        {
+            "partition": "year=2025/month=11",
+            "row_count": 3670,
+            "size_kb": 124.52
+        },
+        {
+            "partition": "year=2025/month=12",
+            "row_count": 3739,
+            "size_kb": 126.81
+        }
+    ],
+    "before_samples": [
+        {
+            "transaction_id": "TXN00000001",
+            "user_id": "USR001640",
+            "product_id": "PRD02254",
+            "category": "Fashion",
+            "price": "338.7",
+            "quantity": "2",
+            "event_time": "2025-09-20 19:17:46",
+            "payment_method": "Credit Card",
+            "city": "Can Tho",
+            "status": "PENDING"
+        },
+        {
+            "transaction_id": "TXN00000001",
+            "user_id": "USR001640",
+            "product_id": "PRD02254",
+            "category": "Fashion",
+            "price": "338.7",
+            "quantity": "2",
+            "event_time": "2025-09-20 19:17:46",
+            "payment_method": "Credit Card",
+            "city": "Can Tho",
+            "status": "PENDING"
+        },
+        {
+            "transaction_id": "TXN00000003",
+            "user_id": "USR033119",
+            "product_id": "PRD04932",
+            "category": "Electronics",
+            "price": "844.06",
+            "quantity": "9",
+            "event_time": "2025-06-12 22:12:29",
+            "payment_method": "E-Wallet",
+            "city": "Hai Phong",
+            "status": "CANCELLED"
+        },
+        {
+            "transaction_id": "TXN00000004",
+            "user_id": "USR000426",
+            "product_id": "PRD01308",
+            "category": "Sports",
+            "price": "636.81",
+            "quantity": "5",
+            "event_time": "2025-03-02 09:10:26",
+            "payment_method": "E-Wallet",
+            "city": "Da Nang",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000005",
+            "user_id": "USR006339",
+            "product_id": "PRD02941",
+            "category": "Home & Living",
+            "price": "907.57",
+            "quantity": "-1",
+            "event_time": "2025-10-11 09:35:35",
+            "payment_method": "Bank Transfer",
+            "city": "Can Tho",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000006",
+            "user_id": "USR019214",
+            "product_id": "PRD02963",
+            "category": "Books",
+            "price": "NULL",
+            "quantity": "2",
+            "event_time": "2025-01-18 19:06:51",
+            "payment_method": "E-Wallet",
+            "city": "Da Nang",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000025",
+            "user_id": "NULL",
+            "product_id": "PRD00807",
+            "category": "Electronics",
+            "price": "606.92",
+            "quantity": "6",
+            "event_time": "2025-11-07 22:03:46",
+            "payment_method": "Credit Card",
+            "city": "Ha Noi",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000030",
+            "user_id": "NULL",
+            "product_id": "PRD04120",
+            "category": "Books",
+            "price": "240.36",
+            "quantity": "9",
+            "event_time": "2025-02-01 02:41:34",
+            "payment_method": "E-Wallet",
+            "city": "Ho Chi Minh",
+            "status": "CANCELLED"
+        },
+        {
+            "transaction_id": "TXN00000038",
+            "user_id": "USR027760",
+            "product_id": "PRD02267",
+            "category": "Electronics",
+            "price": "-147.87",
+            "quantity": "3",
+            "event_time": "2025-09-05 10:19:37",
+            "payment_method": "COD",
+            "city": "Ha Noi",
+            "status": "REFUNDED"
+        },
+        {
+            "transaction_id": "TXN00000060",
+            "user_id": "USR009885",
+            "product_id": "PRD01895",
+            "category": "Beauty",
+            "price": "1042.45",
+            "quantity": "-1",
+            "event_time": "2025-01-25 22:39:22",
+            "payment_method": "Bank Transfer",
+            "city": "Hai Phong",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000061",
+            "user_id": "USR027535",
+            "product_id": "PRD03191",
+            "category": "Books",
+            "price": "NULL",
+            "quantity": "1",
+            "event_time": "2025-11-29 17:19:16",
+            "payment_method": "Bank Transfer",
+            "city": "Hai Phong",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000067",
+            "user_id": "USR002034",
+            "product_id": "PRD02026",
+            "category": "Fashion",
+            "price": "NULL",
+            "quantity": "10",
+            "event_time": "2025-03-01 04:18:23",
+            "payment_method": "E-Wallet",
+            "city": "Ha Noi",
+            "status": "PENDING"
+        }
+    ],
+    "after_samples": [
+        {
+            "transaction_id": "TXN00000001",
+            "user_id": "USR001640",
+            "product_id": "PRD02254",
+            "category": "Fashion",
+            "price": 338.7,
+            "quantity": 2,
+            "total_amount": 677.4,
+            "event_time": "2025-09-20 19:17:46",
+            "year": 2025,
+            "month": 9,
+            "payment_method": "Credit Card",
+            "city": "Can Tho",
+            "status": "PENDING"
+        },
+        {
+            "transaction_id": "TXN00000003",
+            "user_id": "USR033119",
+            "product_id": "PRD04932",
+            "category": "Electronics",
+            "price": 844.06,
+            "quantity": 9,
+            "total_amount": 7596.54,
+            "event_time": "2025-06-12 22:12:29",
+            "year": 2025,
+            "month": 6,
+            "payment_method": "E-Wallet",
+            "city": "Hai Phong",
+            "status": "CANCELLED"
+        },
+        {
+            "transaction_id": "TXN00000004",
+            "user_id": "USR000426",
+            "product_id": "PRD01308",
+            "category": "Sports",
+            "price": 636.81,
+            "quantity": 5,
+            "total_amount": 3184.05,
+            "event_time": "2025-03-02 09:10:26",
+            "year": 2025,
+            "month": 3,
+            "payment_method": "E-Wallet",
+            "city": "Da Nang",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000007",
+            "user_id": "USR024912",
+            "product_id": "PRD02278",
+            "category": "Beauty",
+            "price": 955.35,
+            "quantity": 6,
+            "total_amount": 5732.1,
+            "event_time": "2025-03-05 04:02:45",
+            "year": 2025,
+            "month": 3,
+            "payment_method": "COD",
+            "city": "Da Nang",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000008",
+            "user_id": "USR045995",
+            "product_id": "PRD00585",
+            "category": "Books",
+            "price": 954.29,
+            "quantity": 9,
+            "total_amount": 8588.61,
+            "event_time": "2025-10-11 03:57:15",
+            "year": 2025,
+            "month": 10,
+            "payment_method": "E-Wallet",
+            "city": "Ha Noi",
+            "status": "PENDING"
+        },
+        {
+            "transaction_id": "TXN00000009",
+            "user_id": "USR041944",
+            "product_id": "PRD04563",
+            "category": "Fashion",
+            "price": 1028.5,
+            "quantity": 1,
+            "total_amount": 1028.5,
+            "event_time": "2025-03-30 22:52:57",
+            "year": 2025,
+            "month": 3,
+            "payment_method": "Credit Card",
+            "city": "Da Nang",
+            "status": "PENDING"
+        },
+        {
+            "transaction_id": "TXN00000010",
+            "user_id": "USR013827",
+            "product_id": "PRD04647",
+            "category": "Sports",
+            "price": 475.44,
+            "quantity": 8,
+            "total_amount": 3803.52,
+            "event_time": "2025-06-03 15:33:23",
+            "year": 2025,
+            "month": 6,
+            "payment_method": "Bank Transfer",
+            "city": "Ha Noi",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000011",
+            "user_id": "USR048824",
+            "product_id": "PRD04599",
+            "category": "Books",
+            "price": 397.8,
+            "quantity": 10,
+            "total_amount": 3978.0,
+            "event_time": "2025-06-16 09:17:33",
+            "year": 2025,
+            "month": 6,
+            "payment_method": "Bank Transfer",
+            "city": "Da Nang",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000012",
+            "user_id": "USR009066",
+            "product_id": "PRD04175",
+            "category": "Beauty",
+            "price": 140.91,
+            "quantity": 1,
+            "total_amount": 140.91,
+            "event_time": "2025-12-01 10:03:39",
+            "year": 2025,
+            "month": 12,
+            "payment_method": "Credit Card",
+            "city": "Ha Noi",
+            "status": "REFUNDED"
+        },
+        {
+            "transaction_id": "TXN00000013",
+            "user_id": "USR044597",
+            "product_id": "PRD03459",
+            "category": "Books",
+            "price": 99.97,
+            "quantity": 7,
+            "total_amount": 699.79,
+            "event_time": "2025-08-20 10:04:57",
+            "year": 2025,
+            "month": 8,
+            "payment_method": "Bank Transfer",
+            "city": "Can Tho",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000014",
+            "user_id": "USR000753",
+            "product_id": "PRD00939",
+            "category": "Sports",
+            "price": 1327.76,
+            "quantity": 5,
+            "total_amount": 6638.8,
+            "event_time": "2025-10-26 11:51:33",
+            "year": 2025,
+            "month": 10,
+            "payment_method": "COD",
+            "city": "Ho Chi Minh",
+            "status": "COMPLETED"
+        },
+        {
+            "transaction_id": "TXN00000015",
+            "user_id": "USR029736",
+            "product_id": "PRD00027",
+            "category": "Sports",
+            "price": 1314.4,
+            "quantity": 5,
+            "total_amount": 6572.0,
+            "event_time": "2025-07-14 09:48:02",
+            "year": 2025,
+            "month": 7,
+            "payment_method": "E-Wallet",
+            "city": "Can Tho",
+            "status": "COMPLETED"
+        }
+    ],
+    "gold_kpi_by_category": [
+        {
+            "category": "Sports",
+            "total_orders": 3682,
+            "total_items_sold": 20345,
+            "total_revenue": 15516005.42,
+            "avg_order_value": 4214.02
+        },
+        {
+            "category": "Home & Living",
+            "total_orders": 3696,
+            "total_items_sold": 20246,
+            "total_revenue": 15257233.15,
+            "avg_order_value": 4128.04
+        },
+        {
+            "category": "Beauty",
+            "total_orders": 3709,
+            "total_items_sold": 20216,
+            "total_revenue": 15218810.9,
+            "avg_order_value": 4103.21
+        },
+        {
+            "category": "Electronics",
+            "total_orders": 3672,
+            "total_items_sold": 20202,
+            "total_revenue": 15182118.19,
+            "avg_order_value": 4134.56
+        },
+        {
+            "category": "Fashion",
+            "total_orders": 3686,
+            "total_items_sold": 20256,
+            "total_revenue": 15049135.25,
+            "avg_order_value": 4082.78
+        },
+        {
+            "category": "Books",
+            "total_orders": 3561,
+            "total_items_sold": 19678,
+            "total_revenue": 14831636.74,
+            "avg_order_value": 4165.02
+        }
+    ],
+    "gold_kpi_by_city": [
+        {
+            "city": "Can Tho",
+            "total_orders": 8855,
+            "completed_orders": 4488,
+            "cancelled_orders": 1433,
+            "completion_rate_pct": 50.68,
+            "total_revenue": 18553987.65,
+            "avg_order_value": 4134.13
+        },
+        {
+            "city": "Ho Chi Minh",
+            "total_orders": 8818,
+            "completed_orders": 4340,
+            "cancelled_orders": 1506,
+            "completion_rate_pct": 49.22,
+            "total_revenue": 18282216.23,
+            "avg_order_value": 4212.49
+        },
+        {
+            "city": "Ha Noi",
+            "total_orders": 8651,
+            "completed_orders": 4386,
+            "cancelled_orders": 1376,
+            "completion_rate_pct": 50.7,
+            "total_revenue": 18254457.33,
+            "avg_order_value": 4161.98
+        },
+        {
+            "city": "Da Nang",
+            "total_orders": 8768,
+            "completed_orders": 4341,
+            "cancelled_orders": 1442,
+            "completion_rate_pct": 49.51,
+            "total_revenue": 18001116.72,
+            "avg_order_value": 4146.77
+        },
+        {
+            "city": "Hai Phong",
+            "total_orders": 8830,
+            "completed_orders": 4451,
+            "cancelled_orders": 1426,
+            "completion_rate_pct": 50.41,
+            "total_revenue": 17963161.72,
+            "avg_order_value": 4035.76
+        }
+    ],
+    "gold_kpi_by_month": [
+        {
+            "year_month": "2025-01",
+            "total_orders": 1876,
+            "total_items_sold": 10547,
+            "total_revenue": 7986144.68,
+            "avg_order_value": 4257.01
+        },
+        {
+            "year_month": "2025-02",
+            "total_orders": 1664,
+            "total_items_sold": 9211,
+            "total_revenue": 6907638.99,
+            "avg_order_value": 4151.23
+        },
+        {
+            "year_month": "2025-03",
+            "total_orders": 1861,
+            "total_items_sold": 10108,
+            "total_revenue": 7679019.52,
+            "avg_order_value": 4126.29
+        },
+        {
+            "year_month": "2025-04",
+            "total_orders": 1759,
+            "total_items_sold": 9532,
+            "total_revenue": 7040431.66,
+            "avg_order_value": 4002.52
+        },
+        {
+            "year_month": "2025-05",
+            "total_orders": 1873,
+            "total_items_sold": 10169,
+            "total_revenue": 7711276.59,
+            "avg_order_value": 4117.07
+        },
+        {
+            "year_month": "2025-06",
+            "total_orders": 1777,
+            "total_items_sold": 9807,
+            "total_revenue": 7357978.96,
+            "avg_order_value": 4140.67
+        },
+        {
+            "year_month": "2025-07",
+            "total_orders": 1941,
+            "total_items_sold": 10777,
+            "total_revenue": 8121449.09,
+            "avg_order_value": 4184.16
+        },
+        {
+            "year_month": "2025-08",
+            "total_orders": 1838,
+            "total_items_sold": 10034,
+            "total_revenue": 7535159.43,
+            "avg_order_value": 4099.65
+        },
+        {
+            "year_month": "2025-09",
+            "total_orders": 1832,
+            "total_items_sold": 9992,
+            "total_revenue": 7482616.85,
+            "avg_order_value": 4084.4
+        },
+        {
+            "year_month": "2025-10",
+            "total_orders": 1910,
+            "total_items_sold": 10568,
+            "total_revenue": 7875160.24,
+            "avg_order_value": 4123.12
+        },
+        {
+            "year_month": "2025-11",
+            "total_orders": 1816,
+            "total_items_sold": 10094,
+            "total_revenue": 7691263.51,
+            "avg_order_value": 4235.28
+        },
+        {
+            "year_month": "2025-12",
+            "total_orders": 1859,
+            "total_items_sold": 10104,
+            "total_revenue": 7666800.13,
+            "avg_order_value": 4124.15
+        }
+    ]
+}
